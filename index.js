@@ -1,40 +1,55 @@
-const tax = 20;
-const someThreshold = 30;
-const myNumbers = [2, 4, 6, 10, 55, 23];
-const vat = addTaxOf(tax);
-
-
-let sumCalculatedInProceduralWay = 0
-for (let i = 0; i < myNumbers.length; i++) {
-    const currentNumber = myNumbers[i];
-    if (onlyGreaterThan(someThreshold)(currentNumber)) {
-        sumCalculatedInProceduralWay += vat(currentNumber);
+// Model, View, View Model
+class Employee {
+    constructor(id, firstName, lastName) {
+        this.id = id;
+        this.firstName = firstName;
+        this.lastName = lastName;
     }
 }
 
-const sumCalculatedInFunctionalWay = myNumbers
-    .filter(onlyGreaterThan(someThreshold))
-    .map(vat)
-    .reduce(sum, 0);
-
-myNumbers.forEach(
-    (currentNumber, index) => console.log(`${index} -> ${currentNumber}`));
-
-console.log(sumCalculatedInProceduralWay);
-console.log(sumCalculatedInFunctionalWay);
-
-function onlyGreaterThan(threshold) {
-    return function (value) {
-        return value > threshold;
+class EmployeeService {
+    getOne(id) {
+        return new Promise(function (resolve, reject) {
+            setTimeout(function () {
+                resolve(new Employee(id, 'John', 'Smith'));
+                // reject(new Error(`No employee with ID ${id} found`));
+            }, 2000);
+        });
     }
 }
 
-function addTaxOf(tax) {
-    return function (value) {
-        return value + tax;
-    };
+class EmployeeFormComponent {
+    currentEmployee;
+
+    constructor(employees) {
+        this.employees = employees;
+        const formElement = document.querySelector('form');
+        formElement.addEventListener('submit', this.submit);
+    }
+
+    submit = (event) => {
+        console.log(this);
+        event.preventDefault();
+        const formElement = event.target;
+        const firstNameInput =
+            formElement.querySelector('#firstName');
+        const lastNameInput = formElement['lastName'];
+        console.log(
+            new Employee(this.currentEmployee.id, firstNameInput.value, lastNameInput.value));
+    }
+
+    show(employeeId) {
+        this.employees.getOne(employeeId)
+            .then(employee => {
+                    this.currentEmployee = employee;
+                    const firstNameInput = document.querySelector('#firstName');
+                    firstNameInput.value = this.currentEmployee.firstName;
+                    const lastNameInput = document.querySelector('#lastName');
+                    lastNameInput.value = this.currentEmployee.lastName;
+                },
+                error => console.log('Sorry... ', error));
+        console.log('End');
+    }
 }
 
-function sum(accSum, currentValue) {
-    return accSum + currentValue;
-}
+new EmployeeFormComponent(new EmployeeService()).show(1234);
